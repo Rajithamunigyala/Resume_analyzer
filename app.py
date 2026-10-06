@@ -1,8 +1,5 @@
 import streamlit as st
-from pypdf import PdfReader
 from docx import Document
-
-
 # ---------------- PDF TEXT EXTRACTION ----------------
 def extract_pdf(file):
     text = ""
@@ -17,12 +14,12 @@ def extract_pdf(file):
 # ---------------- DOCX TEXT EXTRACTION ----------------
 def extract_docx(file):
     doc = Document(file)
-    return "\n".join(paragraph.text for paragraph in doc.paragraphs)
+    return "\n".join(para.text for para in doc.paragraphs)
 
 
-# ---------------- SKILLS ANALYSIS ----------------
+# ---------------- RESUME SKILLS ----------------
 def analyze_resume(text):
-    skills = [
+    all_skills = [
         "python",
         "java",
         "sql",
@@ -35,17 +32,17 @@ def analyze_resume(text):
         "react"
     ]
 
-    found = []
+    found_skills = []
 
-    text = text.lower()
+    for skill in all_skills:
+        if skill in text.lower():
+            found_skills.append(skill)
 
-    for skill in skills:
-        if skill in text:
-            found.append(skill)
+    score = int(
+        (len(found_skills) / len(all_skills)) * 100
+    )
 
-    score = int((len(found) / len(skills)) * 100)
-
-    return found, score
+    return found_skills, score
 
 
 # ---------------- MISSING SKILLS ----------------
@@ -64,7 +61,8 @@ def missing_skills(found_skills):
     ]
 
     return [
-        skill for skill in all_skills
+        skill
+        for skill in all_skills
         if skill not in found_skills
     ]
 
@@ -102,7 +100,7 @@ def calculate_ats_score(text):
     return min(score, 100)
 
 
-# ---------------- JOB MATCHING ----------------
+# ---------------- JOB DESCRIPTION MATCH ----------------
 def job_match(resume_text, job_description):
 
     skills = [
@@ -137,9 +135,11 @@ def job_match(resume_text, job_description):
                 missing_job_skills.append(skill)
 
     if len(job_skills) > 0:
+
         match_score = int(
             (len(matching_skills) / len(job_skills)) * 100
         )
+
     else:
         match_score = 0
 
@@ -150,25 +150,17 @@ def job_match(resume_text, job_description):
     )
 
 
-# =====================================================
-# STREAMLIT APP
-# =====================================================
-
-st.set_page_config(
-    page_title="Resume Analyzer",
-    page_icon="📄",
-    layout="wide"
-)
+# ================= MAIN APP =================
 
 st.title("📄 Resume Analyzer")
 
 st.write(
-    "Upload your resume and check your skills, "
-    "resume score, ATS score and job match."
+    "Upload your resume to analyze skills, ATS score "
+    "and job matching."
 )
 
 
-# ---------------- FILE UPLOAD ----------------
+# ---------------- UPLOAD ----------------
 
 uploaded_file = st.file_uploader(
     "📤 Upload Resume",
@@ -178,12 +170,14 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
 
-    # PDF
+    # Extract text
+
     if uploaded_file.type == "application/pdf":
+
         text = extract_pdf(uploaded_file)
 
-    # DOCX
     else:
+
         text = extract_docx(uploaded_file)
 
 
@@ -194,7 +188,7 @@ if uploaded_file is not None:
     st.text_area(
         "Resume Text",
         text,
-        height=250
+        height=200
     )
 
 
@@ -205,8 +199,11 @@ if uploaded_file is not None:
     st.subheader("✅ Skills Found")
 
     if skills:
+
         st.write(skills)
+
     else:
+
         st.write("No skills found")
 
 
@@ -217,9 +214,14 @@ if uploaded_file is not None:
     st.subheader("❌ Missing Skills")
 
     if missing:
+
         st.write(missing)
+
     else:
-        st.success("No missing skills 🎉")
+
+        st.success(
+            "No missing skills 🎉"
+        )
 
 
     # ---------------- RESUME SCORE ----------------
@@ -269,26 +271,31 @@ if uploaded_file is not None:
     suggestions = []
 
     if "education" not in text_lower:
+
         suggestions.append(
             "Add an Education section"
         )
 
     if "skills" not in text_lower:
+
         suggestions.append(
             "Add a Skills section"
         )
 
     if "projects" not in text_lower:
+
         suggestions.append(
             "Add a Projects section"
         )
 
     if "experience" not in text_lower:
+
         suggestions.append(
             "Add an Experience section"
         )
 
     if "certifications" not in text_lower:
+
         suggestions.append(
             "Add Certifications if available"
         )
@@ -297,7 +304,11 @@ if uploaded_file is not None:
     if suggestions:
 
         for suggestion in suggestions:
-            st.write("⚠️", suggestion)
+
+            st.write(
+                "⚠️",
+                suggestion
+            )
 
     else:
 
@@ -306,7 +317,7 @@ if uploaded_file is not None:
         )
 
 
-    # ---------------- JOB DESCRIPTION MATCHING ----------------
+    # ================= JOB MATCHING =================
 
     st.subheader("💼 Job Description Matching")
 
@@ -317,7 +328,7 @@ if uploaded_file is not None:
 
 
     job_description = st.text_area(
-        "Paste Job Description",
+        "📋 Paste Job Description",
         height=200
     )
 
@@ -348,7 +359,6 @@ if uploaded_file is not None:
 
             st.progress(match_score)
 
-
             if match_score >= 80:
 
                 st.success(
@@ -373,8 +383,11 @@ if uploaded_file is not None:
             st.subheader("✅ Matching Skills")
 
             if matching:
+
                 st.write(matching)
+
             else:
+
                 st.write(
                     "No matching skills found"
                 )
