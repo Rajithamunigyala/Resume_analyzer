@@ -1,6 +1,9 @@
 import streamlit as st
+from pypdf import PdfReader
 from docx import Document
+
 # ---------------- PDF TEXT EXTRACTION ----------------
+
 def extract_pdf(file):
     text = ""
     reader = PdfReader(file)
@@ -12,13 +15,19 @@ def extract_pdf(file):
 
 
 # ---------------- DOCX TEXT EXTRACTION ----------------
+
 def extract_docx(file):
     doc = Document(file)
-    return "\n".join(para.text for para in doc.paragraphs)
+
+    return "\n".join(
+        para.text for para in doc.paragraphs
+    )
 
 
 # ---------------- RESUME SKILLS ----------------
+
 def analyze_resume(text):
+
     all_skills = [
         "python",
         "java",
@@ -34,8 +43,11 @@ def analyze_resume(text):
 
     found_skills = []
 
+    text_lower = text.lower()
+
     for skill in all_skills:
-        if skill in text.lower():
+
+        if skill in text_lower:
             found_skills.append(skill)
 
     score = int(
@@ -46,7 +58,9 @@ def analyze_resume(text):
 
 
 # ---------------- MISSING SKILLS ----------------
+
 def missing_skills(found_skills):
+
     all_skills = [
         "python",
         "java",
@@ -68,7 +82,9 @@ def missing_skills(found_skills):
 
 
 # ---------------- ATS SCORE ----------------
+
 def calculate_ats_score(text):
+
     text = text.lower()
 
     score = 0
@@ -82,6 +98,7 @@ def calculate_ats_score(text):
     ]
 
     for section in sections:
+
         if section in text:
             score += 10
 
@@ -94,6 +111,7 @@ def calculate_ats_score(text):
     ]
 
     for keyword in keywords:
+
         if keyword in text:
             score += 10
 
@@ -101,6 +119,7 @@ def calculate_ats_score(text):
 
 
 # ---------------- JOB DESCRIPTION MATCH ----------------
+
 def job_match(resume_text, job_description):
 
     skills = [
@@ -130,8 +149,11 @@ def job_match(resume_text, job_description):
             job_skills.append(skill)
 
             if skill in resume:
+
                 matching_skills.append(skill)
+
             else:
+
                 missing_job_skills.append(skill)
 
     if len(job_skills) > 0:
@@ -141,6 +163,7 @@ def job_match(resume_text, job_description):
         )
 
     else:
+
         match_score = 0
 
     return (
@@ -151,6 +174,12 @@ def job_match(resume_text, job_description):
 
 
 # ================= MAIN APP =================
+
+st.set_page_config(
+    page_title="Resume Analyzer",
+    page_icon="📄",
+    layout="wide"
+)
 
 st.title("📄 Resume Analyzer")
 
@@ -170,7 +199,7 @@ uploaded_file = st.file_uploader(
 
 if uploaded_file is not None:
 
-    # Extract text
+    # ---------------- EXTRACT TEXT ----------------
 
     if uploaded_file.type == "application/pdf":
 
